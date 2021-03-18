@@ -1,0 +1,12 @@
+bash run_single_task.sh $1 absa-airy $2 $3
+bash run_single_task.sh $1 absa-prosa $2 $3
+bash run_single_task.sh $1 doc-sentiment-prosa $2 $3
+bash run_single_task.sh $1 emotion-twitter $2 $3
+bash run_single_task.sh $1 entailment-ui $2 $3
+bash run_single_task.sh $1 keyword-extraction-prosa $2 $3
+bash run_single_task.sh $1 qa-factoid-itb $2 $3
+bash run_single_task.sh $1 ner-grit $2 $3
+bash run_single_task.sh $1 ner-prosa $2 $3
+bash run_single_task.sh $1 pos-idn $2 $3
+bash run_single_task.sh $1 term-extraction-airy $2 $3
+bash run_single_task.sh $1 pos-prosa $2 $3
