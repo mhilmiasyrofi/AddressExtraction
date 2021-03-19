@@ -78,6 +78,8 @@ def save(fpath, model, optimizer):
         'optimizer_state_dict': optimizer.state_dict()
     }, fpath)
 
+def post_process(text) :
+    return text.replace(" , ", ", ").replace(" . ", ". ")
 
 if __name__ == "__main__":
 
@@ -167,6 +169,8 @@ if __name__ == "__main__":
             
             else:
                 i += 1
+        poi = post_process(poi)
+        street = post_process(street)
         return "{}/{}".format(poi, street)
 
 
