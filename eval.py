@@ -1,7 +1,3 @@
-from utils.data_utils import NerGritDataset, NerDataLoader
-from utils.metrics import ner_metrics_fn
-from utils.forward_fn import forward_word_classification
-from modules.word_classification import BertForWordClassification
 import os
 import sys
 
@@ -22,6 +18,10 @@ from nltk.tokenize import word_tokenize
 
 sys.path.append("indonlu")
 
+from utils.data_utils import NerShopeeDataset, NerDataLoader
+from utils.metrics import ner_metrics_fn
+from utils.forward_fn import forward_word_classification
+from modules.word_classification import BertForWordClassification
 
 ###
 # common functions
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     set_seed(26092020)
 
     model_version = "large"
+    # model_version = "base"
     model_epoch = 1
 
     model_name = "indobenchmark/indobert-{}-p1".format(model_version)
@@ -92,25 +93,9 @@ if __name__ == "__main__":
     # Load Tokenizer and Config
     tokenizer = BertTokenizer.from_pretrained(model_name)
     config = BertConfig.from_pretrained(model_name)
-    config.num_labels = NerGritDataset.NUM_LABELS
+    config.num_labels = NerShopeeDataset.NUM_LABELS
 
-    train_dataset_path = 'data/bert-fine-tune/train.txt'
-    valid_dataset_path = 'data/bert-fine-tune/validation.txt'
-
-    train_dataset = NerGritDataset(
-        train_dataset_path, tokenizer, lowercase=True)
-    valid_dataset = NerGritDataset(
-        valid_dataset_path, tokenizer, lowercase=True)
-
-    batch_size = 32
-    max_seq_len = 128
-
-    train_loader = NerDataLoader(dataset=train_dataset, max_seq_len=max_seq_len,
-                                 batch_size=batch_size, num_workers=16, shuffle=True)
-    valid_loader = NerDataLoader(dataset=valid_dataset, max_seq_len=max_seq_len,
-                                 batch_size=batch_size, num_workers=16, shuffle=False)
-
-    w2i, i2w = NerGritDataset.LABEL2INDEX, NerGritDataset.INDEX2LABEL
+    w2i, i2w = NerShopeeDataset.LABEL2INDEX, NerShopeeDataset.INDEX2LABEL
 
     # Instantiate model
     model = BertForWordClassification.from_pretrained(
@@ -148,17 +133,17 @@ if __name__ == "__main__":
         street = ""
         i = 0
         while i < len(text):
-            if labels[i] == "B-PLACE":
+            if labels[i] == "B-POI":
                 street += text[i] + " "
                 i += 1
-                while i < len(labels) and (labels[i] == "B-PLACE" or labels[i] == "I-PLACE"):
+                while i < len(labels) and (labels[i] == "B-POI" or labels[i] == "I-POI"):
                     street += text[i] + " "
                     i += 1
                 street = street[:-1]
-            elif labels[i] == "B-ORGANISATION":
+            elif labels[i] == "B-STREET":
                 poi += text[i] + " "
                 i += 1
-                while i < len(labels) and (labels[i] == "B-ORGANISATION" or labels[i] == "I-ORGANISATION"):
+                while i < len(labels) and (labels[i] == "B-STREET" or labels[i] == "I-STREET"):
                     poi += text[i] + " "
                     i += 1
                 poi = poi[:-1]
@@ -166,13 +151,13 @@ if __name__ == "__main__":
                 i += 1
         return "{}/{}".format(poi, street)
 
-    df = pd.read_csv("data/test.csv")
+    df = pd.read_csv("data/processed_test.csv")
     df["POI/street"] = df["raw_address"].apply(extract_poi_street)
     df = df.drop(columns=["raw_address"])
 
     SGT = pytz.timezone('Singapore')
     datetime_sgt = datetime.now(SGT)
-    time_now = datetime_sgt.strftime('%Y:%m:%d-%H:%M:%S')
+    time_now = datetime_sgt.strftime('%Y-%m-%d--%H-%M-%S')
 
     csv_path = "submissions/bert-{}/{}.csv".format(model_version, time_now)
     print("File saved at: ", csv_path)
