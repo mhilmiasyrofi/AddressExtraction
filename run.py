@@ -93,8 +93,8 @@ if __name__ == "__main__":
     # Set random seed
     set_seed(26092020)
 
-    # model_version = "base"
-    model_version = "large"
+    model_version = "base"
+    # model_version = "large"
 
     model_dir = "models/bert-{}/".format(model_version)
     
@@ -102,12 +102,11 @@ if __name__ == "__main__":
     # model_version == "base" :
     batch_size = 16
     eval_batch_size = 16
+    max_seq_len = 128
     if model_version == "large":
         batch_size = 32
         eval_batch_size = 32
-
-    max_seq_len = 128
-    
+        max_seq_len = 128
     
     learning_rate = 1e-6
     if model_version == "large" :
@@ -199,19 +198,23 @@ if __name__ == "__main__":
             loss, batch_hyp, batch_label = forward_word_classification(
                 model, batch_data[:-1], i2w=i2w, device='cuda')
 
-            # Update model
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
             tr_loss = loss.item()
-            total_train_loss = total_train_loss + tr_loss
+            
+            if np.isnan(tr_loss) :
+                break
+            else :
+                # Update model
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-            # Calculate metrics
-            list_hyp += batch_hyp
-            list_label += batch_label
+                total_train_loss = total_train_loss + tr_loss
 
-            train_pbar.set_description("(Epoch {}) TRAIN LOSS:{:.4f} LR:{:.8f}".format((epoch+1),
+                # Calculate metrics
+                list_hyp += batch_hyp
+                list_label += batch_label
+
+                train_pbar.set_description("(Epoch {}) TRAIN LOSS:{:.4f} LR:{:.8f}".format((epoch+1),
                                                                                        total_train_loss/(i+1), get_lr(optimizer)))
 
         # Calculate train metric
@@ -222,6 +225,7 @@ if __name__ == "__main__":
                                                                        total_train_loss/(i+1), metrics_to_string(metrics), get_lr(optimizer)))
         
         save("{}model-{}.pth".format(model_dir, epoch+1), model, optimizer)
+        logger.info("save model checkpoint at {}".format(model_dir))
 
         # Evaluate on validation
         model.eval()
