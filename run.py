@@ -93,8 +93,8 @@ if __name__ == "__main__":
     # Set random seed
     set_seed(26092020)
 
-    model_version = "base"
-    # model_version = "large"
+#     model_version = "base"
+    model_version = "large"
 
     model_dir = "models/bert-{}/".format(model_version)
     
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         eval_batch_size = 32
         max_seq_len = 128
     
-    learning_rate = 1e-6
+    learning_rate = 2e-6
     if model_version == "large" :
         learning_rate = 2e-5    
 
