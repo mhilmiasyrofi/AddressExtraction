@@ -119,6 +119,7 @@ if __name__ == "__main__":
 
     output_model = "{}model-{}.pth".format(
         model_dir, model_epoch)
+    print("Loaded model: ", output_model)
     checkpoint = torch.load(output_model, map_location='cpu')
     model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -150,25 +151,26 @@ if __name__ == "__main__":
         i = 0
         while i < len(text):
             if labels[i] == "B-POI":
-                street += text[i] + " "
-                i += 1
-                while i < len(labels) and (labels[i] == "B-POI" or labels[i] == "I-POI"):
-                    street += text[i] + " "
-                    i += 1
-                street = street[:-1]
-            elif labels[i] == "B-STREET":
                 poi += text[i] + " "
                 i += 1
-                while i < len(labels) and (labels[i] == "B-STREET" or labels[i] == "I-STREET"):
+                while i < len(labels) and (labels[i] == "B-POI" or labels[i] == "I-POI"):
                     poi += text[i] + " "
                     i += 1
                 poi = poi[:-1]
+            elif labels[i] == "B-STREET":
+                street += text[i] + " "
+                i += 1
+                while i < len(labels) and (labels[i] == "B-STREET" or labels[i] == "I-STREET"):
+                    street += text[i] + " "
+                    i += 1
+                street = street[:-1]
+            
             else:
                 i += 1
         return "{}/{}".format(poi, street)
 
 
-    df = pd.read_csv("data/processed_test.csv")
+    df = pd.read_csv("data/cleaned_test.csv")
     df["POI/street"] = df["raw_address"].apply(extract_poi_street)
     df = df.drop(columns=["raw_address"])
 
