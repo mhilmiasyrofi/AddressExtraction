@@ -100,8 +100,8 @@ if __name__ == "__main__":
     
     
     # model_version == "base" :
-    batch_size = 16
-    eval_batch_size = 16
+    batch_size = 32
+    eval_batch_size = 64
     max_seq_len = 128
     if model_version == "large":
         batch_size = 32
@@ -186,6 +186,11 @@ if __name__ == "__main__":
     min_loss = sys.maxsize
     max_f1 = 0
     for epoch in range(n_epochs):
+
+        if epoch > 0 :
+            for g in optimizer.param_groups:
+                g['lr'] = g['lr'] * 0.5
+        
         model.train()
         torch.set_grad_enabled(True)
 
