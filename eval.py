@@ -101,8 +101,24 @@ if __name__ == "__main__":
     model = BertForWordClassification.from_pretrained(
         model_name, config=config)
 
-    output_model = "models/bert-{}/model-{}.pth".format(
-        model_version, model_epoch)
+    # model_version == "base" :
+    batch_size = 16
+    eval_batch_size = 16
+    max_seq_len = 128
+    if model_version == "large":
+        batch_size = 32
+        eval_batch_size = 32
+        max_seq_len = 128
+    
+    learning_rate = 1e-6
+    if model_version == "large" :
+        learning_rate = 2e-5 
+
+    model_dir = "models/bert-{}/".format(model_version)
+    model_dir = "{}{}_{}_{}/".format(model_dir, batch_size, max_seq_len, learning_rate)
+
+    output_model = "{}model-{}.pth".format(
+        model_dir, model_epoch)
     checkpoint = torch.load(output_model, map_location='cpu')
     model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -150,6 +166,7 @@ if __name__ == "__main__":
             else:
                 i += 1
         return "{}/{}".format(poi, street)
+
 
     df = pd.read_csv("data/processed_test.csv")
     df["POI/street"] = df["raw_address"].apply(extract_poi_street)
