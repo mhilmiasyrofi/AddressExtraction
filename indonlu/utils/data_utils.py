@@ -207,6 +207,67 @@ class NerProsaDataset(Dataset):
     
     def __len__(self):
         return len(self.data)
+
+class NerShopeeDataset(Dataset):
+    # Static constant variable
+    LABELS = ['I-STREET', 'I-POI', 'B-STREET', 'B-POI', 'O']
+    LABEL2INDEX = {}
+    INDEX2LABEL = {}
+    for i, l in enumerate(LABELS) :
+        LABEL2INDEX[l] = i
+        INDEX2LABEL[i] = l
+    
+    NUM_LABELS = len(LABELS)
+    
+    def load_dataset(self, path):
+        # Read file
+        data = open(path,'r').readlines()
+
+        # Prepare buffer
+        dataset = []
+        sentence = []
+        seq_label = []
+        for line in data:
+            if len(line.strip()) > 0:
+                token, label = line[:-1].split('\t')
+                sentence.append(token)
+                seq_label.append(self.LABEL2INDEX[label])
+            else:
+                dataset.append({
+                    'sentence': sentence,
+                    'seq_label': seq_label
+                })
+                sentence = []
+                seq_label = []
+        return dataset
+    
+    def __init__(self, dataset_path, tokenizer, *args, **kwargs):
+        self.data = self.load_dataset(dataset_path)
+        self.tokenizer = tokenizer
+        
+    def __getitem__(self, index):
+        data = self.data[index]
+        sentence, seq_label = data['sentence'], data['seq_label']
+        
+        # Add CLS token
+        subwords = [self.tokenizer.cls_token_id]
+        subword_to_word_indices = [-1] # For CLS
+        
+        # Add subwords
+        for word_idx, word in enumerate(sentence):
+            subword_list = self.tokenizer.encode(word, add_special_tokens=False)
+            subword_to_word_indices += [word_idx for i in range(len(subword_list))]
+            subwords += subword_list
+            
+        # Add last SEP token
+        subwords += [self.tokenizer.sep_token_id]
+        subword_to_word_indices += [-1]
+        
+        return np.array(subwords), np.array(subword_to_word_indices), np.array(seq_label), data['sentence']
+    
+    def __len__(self):
+        return len(self.data) 
+
         
 class NerDataLoader(DataLoader):
     def __init__(self, max_seq_len=512, *args, **kwargs):
