@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     model_version = "large"
     # model_version = "base"
-    model_epoch = 1
+    model_epoch = 2
 
     model_name = "indobenchmark/indobert-{}-p1".format(model_version)
 
@@ -117,8 +117,9 @@ if __name__ == "__main__":
         learning_rate = 2e-5 
 
     model_dir = "models/bert-{}/".format(model_version)
-    model_dir = "{}{}_{}_{}/".format(model_dir, batch_size, max_seq_len, learning_rate)
-
+    model_dir = "{}{}_{}_{}-last_trained/".format(model_dir, batch_size, max_seq_len, learning_rate)
+#     model_dir = "{}{}_{}_{}/".format(model_dir, batch_size, max_seq_len, learning_rate)
+    
     output_model = "{}model-{}.pth".format(
         model_dir, model_epoch)
     print("Loaded model: ", output_model)

@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Train
     n_epochs = 2
     if model_version == "large":
-        n_epochs = 2
+        n_epochs = 3
 
     if not os.path.exists(model_dir) :
         os.makedirs(model_dir)
