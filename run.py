@@ -93,22 +93,22 @@ if __name__ == "__main__":
     # Set random seed
     set_seed(26092020)
 
-    model_version = "base"
-    # model_version = "large"
+#     model_version = "base"
+    model_version = "large"
 
     model_dir = "models/bert-{}/".format(model_version)
     
     
     # model_version == "base" :
-    batch_size = 16
-    eval_batch_size = 16
+    batch_size = 32
+    eval_batch_size = 64
     max_seq_len = 128
     if model_version == "large":
         batch_size = 32
         eval_batch_size = 32
         max_seq_len = 128
     
-    learning_rate = 1e-6
+    learning_rate = 2e-6
     if model_version == "large" :
         learning_rate = 2e-5    
 
@@ -186,6 +186,11 @@ if __name__ == "__main__":
     min_loss = sys.maxsize
     max_f1 = 0
     for epoch in range(n_epochs):
+
+        if epoch > 0 :
+            for g in optimizer.param_groups:
+                g['lr'] = g['lr'] * 0.5
+        
         model.train()
         torch.set_grad_enabled(True)
 
