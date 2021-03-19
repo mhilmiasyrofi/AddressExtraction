@@ -180,10 +180,6 @@ if __name__ == "__main__" :
     logger.info("Learning Rate: {}".format(learning_rate))
     logger.info("Epochs: {}".format(n_epochs))
 
-    output_model = "{}model-{}.pth".format(
-        model_dir, model_epoch)
-    logger.info("Loaded model: {}".format(output_model))
-
     # Load Tokenizer and Config
     tokenizer = BertTokenizer.from_pretrained(model_name)
     config = BertConfig.from_pretrained(model_name)
@@ -195,6 +191,10 @@ if __name__ == "__main__" :
     model = BertForWordClassification.from_pretrained(
         model_name, config=config)
 
+    
+    output_model = "{}model-{}.pth".format(
+        model_dir, model_epoch)
+    logger.info("Loaded model: {}".format(output_model))
     checkpoint = torch.load(output_model, map_location='cpu')
     model.load_state_dict(checkpoint['model_state_dict'])
 
