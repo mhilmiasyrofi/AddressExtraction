@@ -108,16 +108,16 @@ if __name__ == "__main__":
         eval_batch_size = 32
         max_seq_len = 128
     
-    learning_rate = 2e-6
+    learning_rate = 2e-5
     if model_version == "large" :
-        learning_rate = 2e-5    
+        learning_rate = 3e-5    
 
     model_dir = "{}{}_{}_{}/".format(model_dir, batch_size, max_seq_len, learning_rate)
 
     # Train
     n_epochs = 2
     if model_version == "large":
-        n_epochs = 3
+        n_epochs = 17
 
     if not os.path.exists(model_dir) :
         os.makedirs(model_dir)
@@ -162,17 +162,17 @@ if __name__ == "__main__":
 
     w2i, i2w = NerShopeeDataset.LABEL2INDEX, NerShopeeDataset.INDEX2LABEL
 
-    param_optimizer = list(model.named_parameters())
-    no_decay = ['bias', 'gamma', 'beta']
-    optimizer_grouped_parameters = [
-        {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
-         'weight_decay_rate': 0.01},
-        {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
-         'weight_decay_rate': 0.0}
-    ]
+    # param_optimizer = list(model.named_parameters())
+    # no_decay = ['bias', 'gamma', 'beta']
+    # optimizer_grouped_parameters = [
+    #     {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+    #      'weight_decay_rate': 0.01},
+    #     {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+    #      'weight_decay_rate': 0.0}
+    # ]
+    # optimizer = optim.Adam(optimizer_grouped_parameters, lr=learning_rate)
 
-#     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    optimizer = optim.Adam(optimizer_grouped_parameters, lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     model = model.cuda()
 
@@ -181,15 +181,21 @@ if __name__ == "__main__":
     logger.info("Max Seq Length: {}".format(max_seq_len))
     logger.info("Learning Rate: {}".format(learning_rate))
     logger.info("Epochs: {}".format(n_epochs))
-#     logger.info("{}".format())
 
     min_loss = sys.maxsize
     max_f1 = 0
     for epoch in range(n_epochs):
 
-        if epoch > 0 :
+        if epoch == 4 :
             for g in optimizer.param_groups:
-                g['lr'] = g['lr'] * 0.5
+                g['lr'] = 2e-5
+        elif epoch == 8 :
+            for g in optimizer.param_groups:
+                g['lr'] = 1e-5
+        elif epoch == 12 :
+            for g in optimizer.param_groups:
+                g['lr'] = 5e-6
+                
         
         model.train()
         torch.set_grad_enabled(True)
@@ -224,8 +230,6 @@ if __name__ == "__main__":
 
         # Calculate train metric
         metrics = ner_metrics_fn(list_hyp, list_label)
-#         print("(Epoch {}) TRAIN LOSS:{:.4f} {} LR:{:.8f}".format((epoch+1),
-#             total_train_loss/(i+1), metrics_to_string(metrics), get_lr(optimizer)))
         logger.info("(Epoch {}) TRAIN LOSS:{:.4f} {} LR:{:.8f}".format((epoch+1),
                                                                        total_train_loss/(i+1), metrics_to_string(metrics), get_lr(optimizer)))
         
@@ -258,14 +262,10 @@ if __name__ == "__main__":
                 total_loss/(i+1), metrics_to_string(metrics)))
 
         metrics = ner_metrics_fn(list_hyp, list_label)
-#         print("(Epoch {}) VALID LOSS:{:.4f} {}".format((epoch+1),
-#             total_loss/(i+1), metrics_to_string(metrics)))
         logger.info("(Epoch {}) VALID LOSS:{:.4f} {}".format((epoch+1),
                                                              total_loss/(i+1), metrics_to_string(metrics)))
 
         if total_loss/(i+1) < min_loss and metrics["F1"] > max_f1 :
-#         if total_loss/(i+1) < min_loss:
-            #             print("save model checkpoint")
             logger.info("save model checkpoint at {}".format(model_dir))
 
             min_loss = total_loss/(i+1)
