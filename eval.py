@@ -139,7 +139,7 @@ if __name__ == "__main__" :
     model_version = "large"
     # model_version = "base"
     
-    model_epoch = 2
+    model_epoch = 17
 
     model_name = "indobenchmark/indobert-{}-p1".format(model_version)
 
@@ -154,10 +154,10 @@ if __name__ == "__main__" :
 
     learning_rate = 2e-5
     if model_version == "large":
-        learning_rate = 2e-5
+        learning_rate = 3e-5
 
     model_dir = "models/bert-{}/".format(model_version)
-    model_dir = "{}{}_{}_{}-last_trained/".format(model_dir,
+    model_dir = "{}{}_{}_{}/".format(model_dir,
                                     batch_size, max_seq_len, learning_rate)
 
     if not os.path.exists(model_dir):
@@ -178,8 +178,7 @@ if __name__ == "__main__" :
     logger.info("Batch Size: {}".format(batch_size))
     logger.info("Max Seq Length: {}".format(max_seq_len))
     logger.info("Learning Rate: {}".format(learning_rate))
-    logger.info("Epochs: {}".format(n_epochs))
-
+    
     # Load Tokenizer and Config
     tokenizer = BertTokenizer.from_pretrained(model_name)
     config = BertConfig.from_pretrained(model_name)
@@ -238,6 +237,7 @@ if __name__ == "__main__" :
 
     
     test_dataset_path = 'data/bert-fine-tune/test.txt'
+    logger.info(test_dataset_path)
     test_dataset = NerShopeeDataset(test_dataset_path, tokenizer, lowercase=True)
 
     test_loader = NerDataLoader(dataset=test_dataset, max_seq_len=max_seq_len,
@@ -266,8 +266,8 @@ if __name__ == "__main__" :
     logger.info("File saved at: {}".format(csv_path))
     df[["id", "POI/street"]].to_csv(csv_path, index=False)
 
-    logger.info("Sanity Check with The Best Previous Submission")
-    path = "submissions/bert-large/2021-03-19--23-58-04.csv"
-    dfc = pd.read_csv(path)
-    check = dfc["POI/street"] == df["POI/street"]
-    logger.info("Similarity: {:.2f}%".format(100 * sum(check)/len(check)))
+#     logger.info("Sanity Check with The Best Previous Submission")
+#     path = "submissions/bert-large/2021-03-20--22-12-12.csv"
+#     dfc = pd.read_csv(path)
+#     check = dfc["POI/street"] == df["POI/street"]
+#     logger.info("Similarity: {:.2f}%".format(100 * sum(check)/len(check)))
