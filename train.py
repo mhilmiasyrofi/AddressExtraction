@@ -95,9 +95,10 @@ if __name__ == "__main__":
 
 #     model_version = "base"
     model_version = "large"
-
-    model_dir = "models/bert-{}/".format(model_version)
+    use_regularization = False
+    save_freq = 5
     
+    model_dir = "models/bert-{}/".format(model_version)
     
     # model_version == "base" :
     batch_size = 32
@@ -111,8 +112,12 @@ if __name__ == "__main__":
     learning_rate = 2e-5
     if model_version == "large" :
         learning_rate = 3e-5    
-
-    model_dir = "{}{}_{}_{}/".format(model_dir, batch_size, max_seq_len, learning_rate)
+    
+    model_dir = "{}{}_{}_{}".format(model_dir, batch_size, max_seq_len, learning_rate)
+    if use_regularization :
+        model_dir += "_regularization"
+    
+    model_dir += "/"
 
     # Train
     n_epochs = 2
@@ -134,6 +139,7 @@ if __name__ == "__main__":
     logging.Formatter.converter = customTime
 
     logger.info("Model: indobert-{}".format(model_version))
+    logger.info("Save model checkpoint every {} epoch".format(save_freq))
 
     model_name = "indobenchmark/indobert-{}-p1".format(model_version)
 
@@ -162,17 +168,19 @@ if __name__ == "__main__":
 
     w2i, i2w = NerShopeeDataset.LABEL2INDEX, NerShopeeDataset.INDEX2LABEL
 
-    # param_optimizer = list(model.named_parameters())
-    # no_decay = ['bias', 'gamma', 'beta']
-    # optimizer_grouped_parameters = [
-    #     {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
-    #      'weight_decay_rate': 0.01},
-    #     {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
-    #      'weight_decay_rate': 0.0}
-    # ]
-    # optimizer = optim.Adam(optimizer_grouped_parameters, lr=learning_rate)
-
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = None
+    if use_regularization :
+        param_optimizer = list(model.named_parameters())
+        no_decay = ['bias', 'gamma', 'beta']
+        optimizer_grouped_parameters = [
+            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.01},
+            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.0}
+        ]
+        optimizer = optim.Adam(optimizer_grouped_parameters, lr=learning_rate)
+    else :
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     model = model.cuda()
 
@@ -233,9 +241,15 @@ if __name__ == "__main__":
         logger.info("(Epoch {}) TRAIN LOSS:{:.4f} {} LR:{:.8f}".format((epoch+1),
                                                                        total_train_loss/(i+1), metrics_to_string(metrics), get_lr(optimizer)))
         
-        save("{}model-{}.pth".format(model_dir, epoch+1), model, optimizer)
-        logger.info("save model checkpoint at {}".format(model_dir))
 
+        # save a checkpoint every 5 epoch
+        # or save checkpoints for the last 3 models
+        if (epoch > 0 and epoch % save_freq == 0) or epoch >= max(n_epochs - 3, 0) :
+            model_path = "{}model-{}.pth".format(model_dir, epoch+1)
+            save(model_path, model, optimizer)
+            logger.info("save model checkpoint at {}".format(model_path))
+
+        
         # Evaluate on validation
         model.eval()
         torch.set_grad_enabled(False)
@@ -266,10 +280,10 @@ if __name__ == "__main__":
                                                              total_loss/(i+1), metrics_to_string(metrics)))
 
         if total_loss/(i+1) < min_loss and metrics["F1"] > max_f1 :
-            logger.info("save model checkpoint at {}".format(model_dir))
-
             min_loss = total_loss/(i+1)
             max_f1 = metrics["F1"]
 
-            save("{}model-best.pth".format(model_dir), model, optimizer)
+            model_path = "{}model-best.pth".format(model_dir)
+            logger.info("save model checkpoint at {}".format(model_path))
+            save(model_path, model, optimizer)
             # https://github.com/huggingface/transformers/issues/7849
