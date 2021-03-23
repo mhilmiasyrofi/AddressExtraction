@@ -279,7 +279,7 @@ if __name__ == "__main__":
         logger.info("(Epoch {}) VALID LOSS:{:.4f} {}".format((epoch+1),
                                                              total_loss/(i+1), metrics_to_string(metrics)))
 
-        if total_loss/(i+1) < min_loss and metrics["F1"] > max_f1 :
+        if total_loss/(i+1) < min_loss and metrics["F1"] >= max_f1 :
             min_loss = total_loss/(i+1)
             max_f1 = metrics["F1"]
 
