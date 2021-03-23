@@ -136,8 +136,9 @@ if __name__ == "__main__" :
     # Set random seed
     set_seed(26092020)
 
-    model_version = "large"
     # model_version = "base"
+    model_version = "large"
+    use_regularization = False
     
     model_epoch = 17
 
@@ -157,8 +158,13 @@ if __name__ == "__main__" :
         learning_rate = 3e-5
 
     model_dir = "models/bert-{}/".format(model_version)
-    model_dir = "{}{}_{}_{}/".format(model_dir,
-                                    batch_size, max_seq_len, learning_rate)
+    
+    model_dir = "{}{}_{}_{}".format(
+        model_dir, batch_size, max_seq_len, learning_rate)
+    if use_regularization:
+        model_dir += "_regularization"
+
+    model_dir += "/"
 
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
