@@ -34,13 +34,13 @@ be:
 
 ### 1. Data Preparation
 
-#### 1.1 Data Cleaning
+#### 1.1 Text Cleaning
 * Drop data which `POI/street` contains dot -> small occurence (0.3% from the data) and can be noisy to the model 
 * Clean `raw_address` -> remove multiple whitespace, remove dot, restructure (correct) punctuation, and remove bracket
 
 Please check at `Data-Cleaning.ipynb` for the implementation.
 
-#### 1.2 Data Formatting
+#### 1.2 Text Repair
 * Utilize a probabilistic model to repair texts in the raw address. The probabilistic model employs the frequency information of transformed n-gram from the train data. 
 
     Examples of frequency information of transformed n-gram:
@@ -53,15 +53,15 @@ Please check at `Data-Cleaning.ipynb` for the implementation.
 
 Please check at `Data-Formatting.ipynb` for the implementation
 
-### 2. Modelling
+### 2. Customized Named Entity Recognition
 
-#### 2.1 Modelling Technique
+#### 2.1 Create BIO Tag
 
 * Assume `POI` and `street` as entities. Frame the problem as named entity recognition (NER), i.e. extract entitites (`POI` and `street`) from texts (`raw_address`) 
 * Construct train and test data with BIO tags for custom NER
-* Fine-tune IndoBERT model to build custom NER
 
-#### 2.2 Generate Test Design
+
+#### 2.2 Fine-tune IndoNLU
 
 Split train data into `train` and `validation`. Use test data for submission. Generate BIO tags for creating custom Named Entity Recognition (NER)
 ```python
@@ -69,15 +69,14 @@ python3 create_train_label.py # create train and validation data
 python3 create_test_label.py # create test data
 ```
 
-#### 2.3 Build Custom NER Model
-
+Fine-tune and evaluate IndoBERT model to build custom NER
 ```python
 python3 train.py # fine-tune NER model
 python3 eval.py # generate csv for submission
 ```
 
 
-**Environment**
+**Preparing Environment**
 
 Before replicating the result, please prepare the environment of the experiment. We run our experiment using Docker, started with [huggingface/transformers-pytorch-gpu:3.4.0](https://hub.docker.com/layers/huggingface/transformers-pytorch-gpu/3.4.0/images/sha256-7e0b2f97aad355f92b27063eef4245ac58e69e8c2113ea9bb0be6b4db23d301a?context=explore) image. You can pull the docker using this command 
 
