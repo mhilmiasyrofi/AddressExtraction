@@ -61,7 +61,7 @@ Please check at `Data-Formatting.ipynb` for the implementation
 * Construct train and test data with BIO tags for custom NER
 
 
-#### 2.2 Fine-tune IndoNLU
+#### 2.2 Fine-tune IndoBERT
 
 Split train data into `train` and `validation`. Use test data for submission. Generate BIO tags for creating custom Named Entity Recognition (NER)
 ```python
