@@ -30,7 +30,7 @@ be:
 
 ## Solution
 
-![Workflow](img/model_scheme.jpg)
+![Architecture](img/shopee-address-extraction-architecture.jpg)
 
 ### 1. Data Preparation
 
