@@ -112,3 +112,4 @@ demo/pics/*
 models/
 # submissions/
 !img/model_scheme.jpg
+!img/shopee-address-extraction-architecture.jpg
